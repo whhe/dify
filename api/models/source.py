@@ -37,8 +37,8 @@ class DataSourceApiKeyAuthBinding(db.Model):
     category = db.Column(db.String(255), nullable=False)
     provider = db.Column(db.String(255), nullable=False)
     credentials = db.Column(db.Text, nullable=True)  # JSON
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     disabled = db.Column(db.Boolean, nullable=True, server_default=db.text("false"))
 
     def to_dict(self):

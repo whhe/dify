@@ -191,6 +191,7 @@ const translation = {
     editorTip: 'Pode editar aplicativos, mas não pode gerenciar configurações da equipe',
     inviteTeamMember: 'Adicionar membro da equipe',
     inviteTeamMemberTip: 'Eles podem acessar os dados da sua equipe diretamente após fazer login.',
+    emailNotSetup: 'O servidor de e-mail não está configurado, então os e-mails de convite não podem ser enviados. Por favor, notifique os usuários sobre o link de convite que será emitido após o convite.',
     email: 'E-mail',
     emailInvalid: 'Formato de e-mail inválido',
     emailPlaceholder: 'Por favor, insira e-mails',
@@ -594,6 +595,9 @@ const translation = {
   license: {
     expiring: 'Expirando em um dia',
     expiring_plural: 'Expirando em {{count}} dias',
+  },
+  pagination: {
+    perPage: 'Itens por página',
   },
 }
 

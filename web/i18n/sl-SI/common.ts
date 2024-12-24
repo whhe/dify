@@ -199,6 +199,7 @@ const translation = {
     datasetOperatorTip: 'Lahko upravlja samo bazo znanja',
     inviteTeamMember: 'Dodaj člana ekipe',
     inviteTeamMemberTip: 'Do vaših podatkov bo lahko dostopal takoj po prijavi.',
+    emailNotSetup: 'E-poštni strežnik ni nastavljen, zato vabil po e-pošti ni mogoče poslati. Prosimo, obvestite uporabnike o povezavi za povabilo, ki bo izdana po povabilu.',
     email: 'E-pošta',
     emailInvalid: 'Neveljaven format e-pošte',
     emailPlaceholder: 'Vnesite e-poštne naslove',
@@ -793,6 +794,9 @@ const translation = {
   license: {
     expiring_plural: 'Poteče v {{count}} dneh',
     expiring: 'Poteče v enem dnevu',
+  },
+  pagination: {
+    perPage: 'Elementi na stran',
   },
 }
 
