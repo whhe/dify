@@ -13,13 +13,13 @@ import contexts
 from constants import HIDDEN_VALUE
 from core.helper import encrypter
 from core.variables import SecretVariable, Variable
-from extensions.ext_database import db
 from factories import variable_factory
 from libs import helper
 from models.enums import CreatedByRole
 
 from .account import Account
-from .types import StringUUID
+from .engine import db
+from .types import AdaptiveText, StringUUID
 
 
 class WorkflowType(Enum):
@@ -101,19 +101,22 @@ class Workflow(db.Model):
     app_id: Mapped[str] = mapped_column(StringUUID, nullable=False)
     type: Mapped[str] = mapped_column(db.String(255), nullable=False)
     version: Mapped[str] = mapped_column(db.String(255), nullable=False)
-    graph: Mapped[str] = mapped_column(sa.Text)
-    _features: Mapped[str] = mapped_column("features", sa.TEXT)
+    graph: Mapped[str] = mapped_column(AdaptiveText)
+    _features: Mapped[str] = mapped_column("features", AdaptiveText)
     created_by: Mapped[str] = mapped_column(StringUUID, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)")
-    )
+    created_at: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by: Mapped[Optional[str]] = mapped_column(StringUUID)
     updated_at: Mapped[datetime] = mapped_column(
-        sa.DateTime, nullable=False, default=datetime.now(tz=UTC), server_onupdate=func.current_timestamp()
+        db.DateTime,
+        nullable=False,
+        default=datetime.now(UTC).replace(tzinfo=None),
+        server_onupdate=func.current_timestamp(),
     )
-    _environment_variables: Mapped[str] = mapped_column("environment_variables", db.Text, nullable=False, default="{}")
+    _environment_variables: Mapped[str] = mapped_column(
+        "environment_variables", AdaptiveText, nullable=False, default="{}"
+    )
     _conversation_variables: Mapped[str] = mapped_column(
-        "conversation_variables", db.Text, nullable=False, default="{}"
+        "conversation_variables", AdaptiveText, nullable=False, default="{}"
     )
 
     def __init__(
@@ -224,8 +227,10 @@ class Workflow(db.Model):
         from models.tools import WorkflowToolProvider
 
         return (
-            db.session.query(WorkflowToolProvider).filter(WorkflowToolProvider.app_id == self.app_id).first()
-            is not None
+            db.session.query(WorkflowToolProvider)
+            .filter(WorkflowToolProvider.tenant_id == self.tenant_id, WorkflowToolProvider.app_id == self.app_id)
+            .count()
+            > 0
         )
 
     @property
@@ -237,7 +242,9 @@ class Workflow(db.Model):
         tenant_id = contexts.tenant_id.get()
 
         environment_variables_dict: dict[str, Any] = json.loads(self._environment_variables)
-        results = [variable_factory.build_variable_from_mapping(v) for v in environment_variables_dict.values()]
+        results = [
+            variable_factory.build_environment_variable_from_mapping(v) for v in environment_variables_dict.values()
+        ]
 
         # decrypt secret variables value
         decrypt_func = (
@@ -302,7 +309,7 @@ class Workflow(db.Model):
             self._conversation_variables = "{}"
 
         variables_dict: dict[str, Any] = json.loads(self._conversation_variables)
-        results = [variable_factory.build_variable_from_mapping(v) for v in variables_dict.values()]
+        results = [variable_factory.build_conversation_variable_from_mapping(v) for v in variables_dict.values()]
         return results
 
     @conversation_variables.setter
@@ -322,6 +329,7 @@ class WorkflowRunStatus(StrEnum):
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     STOPPED = "stopped"
+    PARTIAL_SUCCESSED = "partial-succeeded"
 
     @classmethod
     def value_of(cls, value: str) -> "WorkflowRunStatus":
@@ -390,18 +398,19 @@ class WorkflowRun(db.Model):
     type = db.Column(db.String(255), nullable=False)
     triggered_from = db.Column(db.String(255), nullable=False)
     version = db.Column(db.String(255), nullable=False)
-    graph = db.Column(db.Text)
-    inputs = db.Column(db.Text)
-    status = db.Column(db.String(255), nullable=False)  # running, succeeded, failed, stopped
-    outputs: Mapped[str] = mapped_column(sa.Text, default="{}")
+    graph = db.Column(AdaptiveText)
+    inputs = db.Column(AdaptiveText)
+    status = db.Column(db.String(255), nullable=False)  # running, succeeded, failed, stopped, partial-succeeded
+    outputs: Mapped[Optional[str]] = mapped_column(sa.Text, default="{}")
     error = db.Column(db.Text)
     elapsed_time = db.Column(db.Float, nullable=False, server_default=db.text("0"))
     total_tokens = db.Column(db.Integer, nullable=False, server_default=db.text("0"))
     total_steps = db.Column(db.Integer, server_default=db.text("0"))
     created_by_role = db.Column(db.String(255), nullable=False)  # account, end_user
     created_by = db.Column(StringUUID, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     finished_at = db.Column(db.DateTime)
+    exceptions_count = db.Column(db.Integer, server_default=db.text("0"))
 
     @property
     def created_by_account(self):
@@ -461,6 +470,7 @@ class WorkflowRun(db.Model):
             "created_by": self.created_by,
             "created_at": self.created_at,
             "finished_at": self.finished_at,
+            "exceptions_count": self.exceptions_count,
         }
 
     @classmethod
@@ -486,6 +496,7 @@ class WorkflowRun(db.Model):
             created_by=data.get("created_by"),
             created_at=data.get("created_at"),
             finished_at=data.get("finished_at"),
+            exceptions_count=data.get("exceptions_count"),
         )
 
 
@@ -519,6 +530,8 @@ class WorkflowNodeExecutionStatus(Enum):
     RUNNING = "running"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
+    EXCEPTION = "exception"
+    RETRY = "retry"
 
     @classmethod
     def value_of(cls, value: str) -> "WorkflowNodeExecutionStatus":
@@ -619,13 +632,13 @@ class WorkflowNodeExecution(db.Model):
     node_type = db.Column(db.String(255), nullable=False)
     title = db.Column(db.String(255), nullable=False)
     inputs = db.Column(db.Text)
-    process_data = db.Column(db.Text)
+    process_data = db.Column(AdaptiveText)
     outputs = db.Column(db.Text)
     status = db.Column(db.String(255), nullable=False)
     error = db.Column(db.Text)
     elapsed_time = db.Column(db.Float, nullable=False, server_default=db.text("0"))
     execution_metadata = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     created_by_role = db.Column(db.String(255), nullable=False)
     created_by = db.Column(StringUUID, nullable=False)
     finished_at = db.Column(db.DateTime)
@@ -743,7 +756,7 @@ class WorkflowAppLog(db.Model):
     created_from = db.Column(db.String(255), nullable=False)
     created_by_role = db.Column(db.String(255), nullable=False)
     created_by = db.Column(StringUUID, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
     @property
     def workflow_run(self):
@@ -768,8 +781,8 @@ class ConversationVariable(db.Model):
     id: Mapped[str] = db.Column(StringUUID, primary_key=True)
     conversation_id: Mapped[str] = db.Column(StringUUID, nullable=False, primary_key=True)
     app_id: Mapped[str] = db.Column(StringUUID, nullable=False, index=True)
-    data = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, index=True, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    data = db.Column(AdaptiveText, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, index=True, server_default=func.current_timestamp())
     updated_at = db.Column(
         db.DateTime, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp()
     )
@@ -792,4 +805,4 @@ class ConversationVariable(db.Model):
 
     def to_variable(self) -> Variable:
         mapping = json.loads(self.data)
-        return variable_factory.build_variable_from_mapping(mapping)
+        return variable_factory.build_conversation_variable_from_mapping(mapping)

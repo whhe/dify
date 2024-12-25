@@ -14,6 +14,7 @@ from libs.helper import DatetimeString
 from libs.login import login_required
 from models.enums import WorkflowRunTriggeredFrom
 from models.model import AppMode
+
 from .statistic import date_convert
 
 
@@ -30,13 +31,16 @@ class WorkflowDailyRunsStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = date_convert() + """
+        sql_query = (
+            date_convert()
+            + """
     COUNT(id) AS runs
 FROM
     workflow_runs
 WHERE
     app_id = :app_id
     AND triggered_from = :triggered_from"""
+        )
         arg_dict = {
             "tz": account.timezone,
             "app_id": app_model.id,
@@ -91,13 +95,16 @@ class WorkflowDailyTerminalsStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = date_convert() + """
+        sql_query = (
+            date_convert()
+            + """
     COUNT(DISTINCT workflow_runs.created_by) AS terminal_count
 FROM
     workflow_runs
 WHERE
     app_id = :app_id
     AND triggered_from = :triggered_from"""
+        )
         arg_dict = {
             "tz": account.timezone,
             "app_id": app_model.id,
@@ -152,13 +159,16 @@ class WorkflowDailyTokenCostStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = date_convert() + """
+        sql_query = (
+            date_convert()
+            + """
     SUM(workflow_runs.total_tokens) AS token_count
 FROM
     workflow_runs
 WHERE
     app_id = :app_id
     AND triggered_from = :triggered_from"""
+        )
         arg_dict = {
             "tz": account.timezone,
             "app_id": app_model.id,
@@ -218,11 +228,14 @@ class WorkflowAverageAppInteractionStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = """SELECT
+        sql_query = (
+            """SELECT
     AVG(sub.interactions) AS interactions,
     sub.date
 FROM
-    (""" + date_convert("c.created_at") + """
+    ("""
+            + date_convert("c.created_at")
+            + """
             c.created_by,
             COUNT(c.id) AS interactions
         FROM
@@ -237,6 +250,7 @@ FROM
     ) sub
 GROUP BY
     sub.date"""
+        )
         arg_dict = {
             "tz": account.timezone,
             "app_id": app_model.id,

@@ -191,6 +191,7 @@ const translation = {
     editorTip: 'Poate construi aplicații, dar nu poate gestiona setările echipei',
     inviteTeamMember: 'Adaugă membru în echipă',
     inviteTeamMemberTip: 'Pot accesa direct datele echipei dvs. după autentificare.',
+    emailNotSetup: 'Serverul de e-mail nu este configurat, astfel încât e-mailurile de invitație nu pot fi trimise. Vă rugăm să notificați utilizatorii despre linkul de invitație care va fi emis după invitație.',
     email: 'Email',
     emailInvalid: 'Format de email invalid',
     emailPlaceholder: 'Vă rugăm să introduceți emailuri',
@@ -594,6 +595,9 @@ const translation = {
   license: {
     expiring: 'Expiră într-o zi',
     expiring_plural: 'Expiră în {{count}} zile',
+  },
+  pagination: {
+    perPage: 'Articole pe pagină',
   },
 }
 

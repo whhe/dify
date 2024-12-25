@@ -15,12 +15,12 @@ from sqlalchemy import func
 
 from configs import dify_config
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
-from extensions.ext_database import db
 from extensions.ext_storage import storage
 
 from .account import Account
+from .engine import db
 from .model import App, Tag, TagBinding, UploadFile
-from .types import AdjustedJSON, PostgresJSONIndex, StringUUID
+from .types import AdaptiveText, AdjustedJSON, PostgresJSONIndex, StringUUID
 
 
 class DatasetPermissionEnum(enum.StrEnum):
@@ -48,11 +48,11 @@ class Dataset(db.Model):
     permission = db.Column(db.String(255), nullable=False, default="only_me")
     data_source_type = db.Column(db.String(255))
     indexing_technique = db.Column(db.String(255), nullable=True)
-    index_struct = db.Column(db.Text, nullable=True)
+    index_struct = db.Column(AdaptiveText, nullable=True)
     created_by = db.Column(StringUUID, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     embedding_model = db.Column(db.String(255), nullable=True)
     embedding_model_provider = db.Column(db.String(255), nullable=True)
     collection_binding_id = db.Column(StringUUID, nullable=True)
@@ -212,7 +212,7 @@ class DatasetProcessRule(db.Model):
     mode = db.Column(db.String(255), nullable=False, default="automatic")
     rules = db.Column(db.Text, nullable=True)
     created_by = db.Column(StringUUID, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
     MODES = ["automatic", "custom"]
     PRE_PROCESSING_RULES = ["remove_stopwords", "remove_extra_spaces", "remove_urls_emails"]
@@ -257,14 +257,14 @@ class Document(db.Model):
     dataset_id = db.Column(StringUUID, nullable=False)
     position = db.Column(db.Integer, nullable=False)
     data_source_type = db.Column(db.String(255), nullable=False)
-    data_source_info = db.Column(db.Text, nullable=True)
+    data_source_info = db.Column(AdaptiveText, nullable=True)
     dataset_process_rule_id = db.Column(StringUUID, nullable=True)
     batch = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     created_from = db.Column(db.String(255), nullable=False)
     created_by = db.Column(StringUUID, nullable=False)
     created_api_request_id = db.Column(StringUUID, nullable=True)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
     # start processing
     processing_started_at = db.Column(db.DateTime, nullable=True)
@@ -303,7 +303,7 @@ class Document(db.Model):
     archived_reason = db.Column(db.String(255), nullable=True)
     archived_by = db.Column(StringUUID, nullable=True)
     archived_at = db.Column(db.DateTime, nullable=True)
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     doc_type = db.Column(db.String(40), nullable=True)
     doc_metadata = db.Column(db.JSON, nullable=True)
     doc_form = db.Column(db.String(255), nullable=False, default="text_model")
@@ -527,9 +527,9 @@ class DocumentSegment(db.Model):
     disabled_by = db.Column(StringUUID, nullable=True)
     status = db.Column(db.String(255), nullable=False, default="waiting")
     created_by = db.Column(StringUUID, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     indexing_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
     error = db.Column(db.Text, nullable=True)
@@ -647,7 +647,7 @@ class DatasetKeywordTable(db.Model):
 
     id = db.Column(StringUUID, primary_key=True, default=lambda: uuid.uuid4())
     dataset_id = db.Column(StringUUID, nullable=False, unique=True)
-    keyword_table = db.Column(db.Text, nullable=False)
+    keyword_table = db.Column(AdaptiveText, nullable=False)
     data_source_type = db.Column(db.String(255), nullable=False, default="database")
 
     @property
@@ -693,7 +693,7 @@ class Embedding(db.Model):
     model_name = db.Column(db.String(255), nullable=False, default="text-embedding-ada-002")
     hash = db.Column(db.String(64), nullable=False)
     embedding = db.Column(db.LargeBinary, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     provider_name = db.Column(db.String(255), nullable=False, default="")
 
     def set_embedding(self, embedding_data: list[float]):
@@ -715,7 +715,7 @@ class DatasetCollectionBinding(db.Model):
     model_name = db.Column(db.String(255), nullable=False)
     type = db.Column(db.String(40), default="dataset", nullable=False)
     collection_name = db.Column(db.String(64), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
 
 class TidbAuthBinding(db.Model):
@@ -735,7 +735,7 @@ class TidbAuthBinding(db.Model):
     status = db.Column(db.String(255), nullable=False, server_default=db.text("'CREATING'"))
     account = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
 
 class Whitelist(db.Model):
@@ -747,7 +747,7 @@ class Whitelist(db.Model):
     id = db.Column(StringUUID, primary_key=True, default=lambda: uuid.uuid4())
     tenant_id = db.Column(StringUUID, nullable=True)
     category = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
 
 class DatasetPermission(db.Model):
@@ -764,7 +764,7 @@ class DatasetPermission(db.Model):
     account_id = db.Column(StringUUID, nullable=False)
     tenant_id = db.Column(StringUUID, nullable=False)
     has_permission = db.Column(db.Boolean, nullable=False, server_default=db.text("true"))
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
 
 class ExternalKnowledgeApis(db.Model):
@@ -779,11 +779,11 @@ class ExternalKnowledgeApis(db.Model):
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.String(255), nullable=False)
     tenant_id = db.Column(StringUUID, nullable=False)
-    settings = db.Column(db.Text, nullable=True)
+    settings = db.Column(AdaptiveText, nullable=True)
     created_by = db.Column(StringUUID, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
     def to_dict(self):
         return {
@@ -836,6 +836,6 @@ class ExternalKnowledgeBindings(db.Model):
     dataset_id = db.Column(StringUUID, nullable=False)
     external_knowledge_id = db.Column(StringUUID, nullable=False)
     created_by = db.Column(StringUUID, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())

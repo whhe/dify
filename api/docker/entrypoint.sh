@@ -8,7 +8,6 @@ if [[ "${MIGRATION_ENABLED}" == "true" ]]; then
     flask upgrade-db --dir migrations_new
   else
     flask upgrade-db
-    flask upgrade-db --dir migrations_new
   fi
 fi
 
@@ -39,7 +38,6 @@ else
       --workers ${SERVER_WORKER_AMOUNT:-1} \
       --worker-class ${SERVER_WORKER_CLASS:-gevent} \
       --timeout ${GUNICORN_TIMEOUT:-200} \
-      --preload \
       app:app
   fi
 fi

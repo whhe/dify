@@ -198,6 +198,7 @@ const translation = {
     inviteTeamMember: 'Dodaj członka zespołu',
     inviteTeamMemberTip:
       'Mogą uzyskać bezpośredni dostęp do danych Twojego zespołu po zalogowaniu.',
+    emailNotSetup: 'Serwer poczty nie jest skonfigurowany, więc nie można wysyłać zaproszeń e-mail. Proszę powiadomić użytkowników o linku do zaproszenia, który zostanie wydany po zaproszeniu.',
     email: 'Email',
     emailInvalid: 'Nieprawidłowy format e-maila',
     emailPlaceholder: 'Proszę podać adresy e-mail',
@@ -612,6 +613,9 @@ const translation = {
   license: {
     expiring_plural: 'Wygasa za {{count}} dni',
     expiring: 'Wygasa w ciągu jednego dnia',
+  },
+  pagination: {
+    perPage: 'Ilość elementów na stronie',
   },
 }
 
