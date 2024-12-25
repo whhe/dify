@@ -20,7 +20,7 @@ from extensions.ext_storage import storage
 from .account import Account
 from .engine import db
 from .model import App, Tag, TagBinding, UploadFile
-from .types import AdjustedJSON, PostgresJSONIndex, StringUUID
+from .types import AdaptiveText, AdjustedJSON, PostgresJSONIndex, StringUUID
 
 
 class DatasetPermissionEnum(enum.StrEnum):
@@ -48,7 +48,7 @@ class Dataset(db.Model):
     permission = db.Column(db.String(255), nullable=False, default="only_me")
     data_source_type = db.Column(db.String(255))
     indexing_technique = db.Column(db.String(255), nullable=True)
-    index_struct = db.Column(db.Text, nullable=True)
+    index_struct = db.Column(AdaptiveText, nullable=True)
     created_by = db.Column(StringUUID, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)
@@ -257,7 +257,7 @@ class Document(db.Model):
     dataset_id = db.Column(StringUUID, nullable=False)
     position = db.Column(db.Integer, nullable=False)
     data_source_type = db.Column(db.String(255), nullable=False)
-    data_source_info = db.Column(db.Text, nullable=True)
+    data_source_info = db.Column(AdaptiveText, nullable=True)
     dataset_process_rule_id = db.Column(StringUUID, nullable=True)
     batch = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(255), nullable=False)
@@ -647,7 +647,7 @@ class DatasetKeywordTable(db.Model):
 
     id = db.Column(StringUUID, primary_key=True, default=lambda: uuid.uuid4())
     dataset_id = db.Column(StringUUID, nullable=False, unique=True)
-    keyword_table = db.Column(db.Text, nullable=False)
+    keyword_table = db.Column(AdaptiveText, nullable=False)
     data_source_type = db.Column(db.String(255), nullable=False, default="database")
 
     @property
@@ -693,7 +693,7 @@ class Embedding(db.Model):
     model_name = db.Column(db.String(255), nullable=False, default="text-embedding-ada-002")
     hash = db.Column(db.String(64), nullable=False)
     embedding = db.Column(db.LargeBinary, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     provider_name = db.Column(db.String(255), nullable=False, default="")
 
     def set_embedding(self, embedding_data: list[float]):
@@ -779,7 +779,7 @@ class ExternalKnowledgeApis(db.Model):
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.String(255), nullable=False)
     tenant_id = db.Column(StringUUID, nullable=False)
-    settings = db.Column(db.Text, nullable=True)
+    settings = db.Column(AdaptiveText, nullable=True)
     created_by = db.Column(StringUUID, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by = db.Column(StringUUID, nullable=True)

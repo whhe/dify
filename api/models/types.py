@@ -1,8 +1,9 @@
 import json
 
-from sqlalchemy import CHAR, Index, TypeDecorator
+from sqlalchemy import CHAR, Index, Text, TypeDecorator
 from sqlalchemy import JSON as SAJSON
 from sqlalchemy.dialects.mysql import JSON as MYSQL_JSON
+from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 
@@ -56,6 +57,24 @@ class AdjustedJSON(TypeDecorator):
         if value is None:
             return value
         return json.loads(value)
+
+
+class AdaptiveText(TypeDecorator):
+    """
+    Adaptive Text type for PostgreSQL and MySQL.
+    It is treated as TEXT in PostgreSQL and LONGTEXT in MySQL.
+    """
+
+    impl = Text
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(Text)
+        elif dialect.name == "mysql":
+            return dialect.type_descriptor(LONGTEXT)
+        else:
+            raise NotImplementedError(f"Unsupported dialect: {dialect.name}")
 
 
 class PostgresJSONIndex(Index):

@@ -22,7 +22,7 @@ from models.workflow import WorkflowRunStatus
 
 from .account import Account, Tenant
 from .engine import db
-from .types import StringUUID
+from .types import AdaptiveText, StringUUID
 
 if TYPE_CHECKING:
     from .workflow import Workflow
@@ -238,7 +238,7 @@ class AppModelConfig(db.Model):
     speech_to_text = db.Column(db.Text)
     text_to_speech = db.Column(db.Text)
     more_like_this = db.Column(db.Text)
-    model = db.Column(db.Text)
+    model = db.Column(AdaptiveText)
     user_input_form = db.Column(db.Text)
     dataset_query_variable = db.Column(db.String(255))
     pre_prompt = db.Column(db.Text)
@@ -246,9 +246,9 @@ class AppModelConfig(db.Model):
     sensitive_word_avoidance = db.Column(db.Text)
     retriever_resource = db.Column(db.Text)
     prompt_type = db.Column(db.String(255), nullable=False, default="simple")
-    chat_prompt_config = db.Column(db.Text)
-    completion_prompt_config = db.Column(db.Text)
-    dataset_configs = db.Column(db.Text)
+    chat_prompt_config = db.Column(AdaptiveText)
+    completion_prompt_config = db.Column(AdaptiveText)
+    dataset_configs = db.Column(AdaptiveText)
     external_data_tools = db.Column(db.Text)
     file_upload = db.Column(db.Text)
 
@@ -485,8 +485,8 @@ class RecommendedApp(db.Model):
     is_listed = db.Column(db.Boolean, nullable=False, default=True)
     install_count = db.Column(db.Integer, nullable=False, default=0)
     language = db.Column(db.String(255), nullable=False, default="en-US")
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 
     @property
     def app(self):
@@ -534,7 +534,7 @@ class Conversation(db.Model):
     app_id = db.Column(StringUUID, nullable=False)
     app_model_config_id = db.Column(StringUUID, nullable=True)
     model_provider = db.Column(db.String(255), nullable=True)
-    override_model_configs = db.Column(db.Text)
+    override_model_configs = db.Column(AdaptiveText)
     model_id = db.Column(db.String(255), nullable=True)
     mode = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(255), nullable=False)
@@ -771,7 +771,7 @@ class Message(db.Model):
     app_id = db.Column(StringUUID, nullable=False)
     model_provider = db.Column(db.String(255), nullable=True)
     model_id = db.Column(db.String(255), nullable=True)
-    override_model_configs = db.Column(db.Text)
+    override_model_configs = db.Column(AdaptiveText)
     conversation_id = db.Column(StringUUID, db.ForeignKey("conversations.id"), nullable=False)
     _inputs: Mapped[dict] = mapped_column("inputs", db.JSON)
     query: Mapped[str] = db.Column(db.Text, nullable=False)

@@ -8,7 +8,6 @@ if [[ "${MIGRATION_ENABLED}" == "true" ]]; then
     flask upgrade-db --dir migrations_new
   else
     flask upgrade-db
-    flask upgrade-db --dir migrations_new
   fi
 fi
 

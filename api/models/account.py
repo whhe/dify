@@ -6,7 +6,7 @@ from flask_login import UserMixin
 from sqlalchemy import func
 
 from .engine import db
-from .types import StringUUID
+from .types import AdaptiveText, StringUUID
 
 
 class AccountStatus(enum.StrEnum):
@@ -32,7 +32,7 @@ class Account(UserMixin, db.Model):
     timezone = db.Column(db.String(255))
     last_login_at = db.Column(db.DateTime)
     last_login_ip = db.Column(db.String(255))
-    last_active_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    last_active_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     status = db.Column(db.String(16), nullable=False, default="active")
     initialized_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
@@ -183,7 +183,7 @@ class Tenant(db.Model):
     encrypt_public_key = db.Column(db.Text)
     plan = db.Column(db.String(255), nullable=False, default="basic")
     status = db.Column(db.String(255), nullable=False, default="normal")
-    custom_config = db.Column(db.Text)
+    custom_config = db.Column(AdaptiveText)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
 

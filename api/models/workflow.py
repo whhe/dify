@@ -19,7 +19,7 @@ from models.enums import CreatedByRole
 
 from .account import Account
 from .engine import db
-from .types import StringUUID
+from .types import AdaptiveText, StringUUID
 
 
 class WorkflowType(Enum):
@@ -101,8 +101,8 @@ class Workflow(db.Model):
     app_id: Mapped[str] = mapped_column(StringUUID, nullable=False)
     type: Mapped[str] = mapped_column(db.String(255), nullable=False)
     version: Mapped[str] = mapped_column(db.String(255), nullable=False)
-    graph: Mapped[str] = mapped_column(sa.Text)
-    _features: Mapped[str] = mapped_column("features", sa.TEXT)
+    graph: Mapped[str] = mapped_column(AdaptiveText)
+    _features: Mapped[str] = mapped_column("features", AdaptiveText)
     created_by: Mapped[str] = mapped_column(StringUUID, nullable=False)
     created_at: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_by: Mapped[Optional[str]] = mapped_column(StringUUID)
@@ -112,9 +112,11 @@ class Workflow(db.Model):
         default=datetime.now(UTC).replace(tzinfo=None),
         server_onupdate=func.current_timestamp(),
     )
-    _environment_variables: Mapped[str] = mapped_column("environment_variables", db.Text, nullable=False, default="{}")
+    _environment_variables: Mapped[str] = mapped_column(
+        "environment_variables", AdaptiveText, nullable=False, default="{}"
+    )
     _conversation_variables: Mapped[str] = mapped_column(
-        "conversation_variables", db.Text, nullable=False, default="{}"
+        "conversation_variables", AdaptiveText, nullable=False, default="{}"
     )
 
     def __init__(
@@ -396,8 +398,8 @@ class WorkflowRun(db.Model):
     type = db.Column(db.String(255), nullable=False)
     triggered_from = db.Column(db.String(255), nullable=False)
     version = db.Column(db.String(255), nullable=False)
-    graph = db.Column(db.Text)
-    inputs = db.Column(db.Text)
+    graph = db.Column(AdaptiveText)
+    inputs = db.Column(AdaptiveText)
     status = db.Column(db.String(255), nullable=False)  # running, succeeded, failed, stopped, partial-succeeded
     outputs: Mapped[Optional[str]] = mapped_column(sa.Text, default="{}")
     error = db.Column(db.Text)
@@ -630,7 +632,7 @@ class WorkflowNodeExecution(db.Model):
     node_type = db.Column(db.String(255), nullable=False)
     title = db.Column(db.String(255), nullable=False)
     inputs = db.Column(db.Text)
-    process_data = db.Column(db.Text)
+    process_data = db.Column(AdaptiveText)
     outputs = db.Column(db.Text)
     status = db.Column(db.String(255), nullable=False)
     error = db.Column(db.Text)
@@ -779,7 +781,7 @@ class ConversationVariable(db.Model):
     id: Mapped[str] = db.Column(StringUUID, primary_key=True)
     conversation_id: Mapped[str] = db.Column(StringUUID, nullable=False, primary_key=True)
     app_id: Mapped[str] = db.Column(StringUUID, nullable=False, index=True)
-    data = db.Column(db.Text, nullable=False)
+    data = db.Column(AdaptiveText, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, index=True, server_default=func.current_timestamp())
     updated_at = db.Column(
         db.DateTime, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp()

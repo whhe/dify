@@ -1,6 +1,6 @@
 import uuid
 
-from extensions.ext_database import db
+from sqlalchemy import func
 
 from .engine import db
 from .model import Message

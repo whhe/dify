@@ -4,7 +4,7 @@ from enum import Enum
 from sqlalchemy import func
 
 from .engine import db
-from .types import StringUUID
+from .types import AdaptiveText, StringUUID
 
 
 class ProviderType(Enum):
@@ -55,7 +55,7 @@ class Provider(db.Model):
     tenant_id = db.Column(StringUUID, nullable=False)
     provider_name = db.Column(db.String(255), nullable=False)
     provider_type = db.Column(db.String(40), nullable=False, default="custom")
-    encrypted_config = db.Column(db.Text, nullable=True)
+    encrypted_config = db.Column(AdaptiveText, nullable=True)
     is_valid = db.Column(db.Boolean, nullable=False, server_default=db.text("false"))
     last_used = db.Column(db.DateTime, nullable=True)
 
@@ -109,7 +109,7 @@ class ProviderModel(db.Model):
     provider_name = db.Column(db.String(255), nullable=False)
     model_name = db.Column(db.String(255), nullable=False)
     model_type = db.Column(db.String(40), nullable=False)
-    encrypted_config = db.Column(db.Text, nullable=True)
+    encrypted_config = db.Column(AdaptiveText, nullable=True)
     is_valid = db.Column(db.Boolean, nullable=False, server_default=db.text("false"))
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
@@ -210,7 +210,7 @@ class LoadBalancingModelConfig(db.Model):
     model_name = db.Column(db.String(255), nullable=False)
     model_type = db.Column(db.String(40), nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    encrypted_config = db.Column(db.Text, nullable=True)
+    encrypted_config = db.Column(AdaptiveText, nullable=True)
     enabled = db.Column(db.Boolean, nullable=False, server_default=db.text("true"))
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())

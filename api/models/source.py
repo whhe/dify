@@ -1,8 +1,9 @@
 import json
 import uuid
 
-from extensions.ext_database import db
+from sqlalchemy import func
 
+from .engine import db
 from .types import AdjustedJSON, PostgresJSONIndex, StringUUID
 
 
@@ -19,8 +20,8 @@ class DataSourceOauthBinding(db.Model):
     access_token = db.Column(db.String(255), nullable=False)
     provider = db.Column(db.String(255), nullable=False)
     source_info = db.Column(AdjustedJSON, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP(0)"))
+    created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     disabled = db.Column(db.Boolean, nullable=True, server_default=db.text("false"))
 
 
