@@ -14,7 +14,7 @@ from models.base import Base
 
 from .engine import db
 from .model import Account, App, Tenant
-from .types import StringUUID
+from .types import StringUUID, uuid_default
 
 
 class BuiltinToolProvider(Base):
@@ -30,7 +30,7 @@ class BuiltinToolProvider(Base):
     )
 
     # id of the tool provider
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     # id of the tenant
     tenant_id: Mapped[str] = mapped_column(StringUUID, nullable=True)
     # who created this tool provider
@@ -62,7 +62,7 @@ class ApiToolProvider(Base):
         db.UniqueConstraint("name", "tenant_id", name="unique_api_tool_provider"),
     )
 
-    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id = db.Column(StringUUID, **uuid_default())
     # name of the api provider
     name = db.Column(db.String(255), nullable=False)
     # icon
@@ -122,7 +122,7 @@ class ToolLabelBinding(Base):
         db.UniqueConstraint("tool_id", "label_name", name="unique_tool_label_bind"),
     )
 
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     # tool id
     tool_id: Mapped[str] = mapped_column(db.String(64), nullable=False)
     # tool type
@@ -143,7 +143,7 @@ class WorkflowToolProvider(Base):
         db.UniqueConstraint("tenant_id", "app_id", name="unique_workflow_tool_provider_app_id"),
     )
 
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     # name of the workflow provider
     name: Mapped[str] = mapped_column(db.String(255), nullable=False)
     # label of the workflow provider
@@ -201,7 +201,7 @@ class ToolModelInvoke(Base):
     __tablename__ = "tool_model_invokes"
     __table_args__ = (db.PrimaryKeyConstraint("id", name="tool_model_invoke_pkey"),)
 
-    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id = db.Column(StringUUID, **uuid_default())
     # who invoke this tool
     user_id = db.Column(StringUUID, nullable=False)
     # tenant id
@@ -244,7 +244,7 @@ class ToolConversationVariables(Base):
         db.Index("conversation_id_idx", "conversation_id"),
     )
 
-    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id = db.Column(StringUUID, **uuid_default())
     # conversation user id
     user_id = db.Column(StringUUID, nullable=False)
     # tenant id
@@ -273,7 +273,7 @@ class ToolFile(Base):
         db.Index("tool_file_conversation_id_idx", "conversation_id"),
     )
 
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     # conversation user id
     user_id: Mapped[str] = mapped_column(StringUUID)
     # tenant id
@@ -326,7 +326,7 @@ class DeprecatedPublishedAppTool(Base):
     def description_i18n(self) -> I18nObject:
         return I18nObject(**json.loads(self.description))
 
-    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id = db.Column(StringUUID, **uuid_default())
     user_id: Mapped[str] = db.Column(StringUUID, nullable=False)
     tenant_id: Mapped[str] = db.Column(StringUUID, nullable=False)
     conversation_id: Mapped[Optional[str]] = db.Column(StringUUID, nullable=True)

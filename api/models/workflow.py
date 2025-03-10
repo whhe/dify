@@ -25,7 +25,7 @@ from models.enums import CreatedByRole
 
 from .account import Account
 from .engine import db
-from .types import StringUUID
+from .types import StringUUID, uuid_default
 
 if TYPE_CHECKING:
     from models.model import AppMode
@@ -105,7 +105,7 @@ class Workflow(Base):
         db.Index("workflow_version_idx", "tenant_id", "app_id", "version"),
     )
 
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     tenant_id: Mapped[str] = mapped_column(StringUUID, nullable=False)
     app_id: Mapped[str] = mapped_column(StringUUID, nullable=False)
     type: Mapped[str] = mapped_column(db.String(255), nullable=False)
@@ -400,7 +400,7 @@ class WorkflowRun(Base):
         db.Index("workflow_run_tenant_app_sequence_idx", "tenant_id", "app_id", "sequence_number"),
     )
 
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     tenant_id: Mapped[str] = mapped_column(StringUUID)
     app_id: Mapped[str] = mapped_column(StringUUID)
     sequence_number: Mapped[int] = mapped_column()
@@ -629,7 +629,7 @@ class WorkflowNodeExecution(Base):
         ),
     )
 
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     tenant_id: Mapped[str] = mapped_column(StringUUID)
     app_id: Mapped[str] = mapped_column(StringUUID)
     workflow_id: Mapped[str] = mapped_column(StringUUID)
@@ -758,7 +758,7 @@ class WorkflowAppLog(Base):
         db.Index("workflow_app_log_app_idx", "tenant_id", "app_id"),
     )
 
-    id: Mapped[str] = mapped_column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id: Mapped[str] = mapped_column(StringUUID, **uuid_default())
     tenant_id: Mapped[str] = mapped_column(StringUUID)
     app_id: Mapped[str] = mapped_column(StringUUID)
     workflow_id = db.Column(StringUUID, nullable=False)

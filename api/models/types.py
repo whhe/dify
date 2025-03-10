@@ -1,5 +1,11 @@
+import uuid
+
 from sqlalchemy import CHAR, TypeDecorator
 from sqlalchemy.dialects.postgresql import UUID
+
+from configs import dify_config
+
+from .engine import db
 
 
 class StringUUID(TypeDecorator):
@@ -24,3 +30,24 @@ class StringUUID(TypeDecorator):
         if value is None:
             return value
         return str(value)
+
+
+def uuid_default():
+    if dify_config.SQLALCHEMY_DATABASE_URI_SCHEME == "postgresql":
+        return {"server_default": db.text("uuid_generate_v4()")}
+    else:
+        return {"default": lambda: uuid.uuid4()}
+
+
+def varchar_default(varchar):
+    if dify_config.SQLALCHEMY_DATABASE_URI_SCHEME == "postgresql":
+        return {"server_default": db.text(f"'{varchar}'::character varying")}
+    else:
+        return {"default": varchar}
+
+
+def text_default(varchar):
+    if dify_config.SQLALCHEMY_DATABASE_URI_SCHEME == "postgresql":
+        return {"server_default": db.text(f"'{varchar}'::text")}
+    else:
+        return {"default": varchar}

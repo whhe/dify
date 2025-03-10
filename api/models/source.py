@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from models.base import Base
 
 from .engine import db
-from .types import StringUUID
+from .types import StringUUID, uuid_default
 
 
 class DataSourceOauthBinding(db.Model):  # type: ignore[name-defined]
@@ -17,7 +17,7 @@ class DataSourceOauthBinding(db.Model):  # type: ignore[name-defined]
         db.Index("source_info_idx", "source_info", postgresql_using="gin"),
     )
 
-    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id = db.Column(StringUUID, **uuid_default())
     tenant_id = db.Column(StringUUID, nullable=False)
     access_token = db.Column(db.String(255), nullable=False)
     provider = db.Column(db.String(255), nullable=False)
@@ -35,7 +35,7 @@ class DataSourceApiKeyAuthBinding(Base):
         db.Index("data_source_api_key_auth_binding_provider_idx", "provider"),
     )
 
-    id = db.Column(StringUUID, server_default=db.text("uuid_generate_v4()"))
+    id = db.Column(StringUUID, **uuid_default())
     tenant_id = db.Column(StringUUID, nullable=False)
     category = db.Column(db.String(255), nullable=False)
     provider = db.Column(db.String(255), nullable=False)
