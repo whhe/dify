@@ -10,7 +10,7 @@ from controllers.console import api
 from controllers.console.app.wraps import get_app_model
 from controllers.console.wraps import account_initialization_required, setup_required
 from extensions.ext_database import db
-from libs.helper import DatetimeString
+from libs.helper import DatetimeString, convert_datetime_to_date
 from libs.login import login_required
 from models.enums import WorkflowRunTriggeredFrom
 from models.model import AppMode
@@ -29,8 +29,10 @@ class WorkflowDailyRunsStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = """SELECT
-    DATE(DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE :tz )) AS date,
+        converted_created_at = convert_datetime_to_date(db.engine.dialect.name)
+
+        sql_query = f"""SELECT
+    {converted_created_at} AS date,
     COUNT(id) AS runs
 FROM
     workflow_runs
@@ -91,8 +93,10 @@ class WorkflowDailyTerminalsStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = """SELECT
-    DATE(DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE :tz )) AS date,
+        converted_created_at = convert_datetime_to_date(db.engine.dialect.name)
+
+        sql_query = f"""SELECT
+    {converted_created_at} AS date,
     COUNT(DISTINCT workflow_runs.created_by) AS terminal_count
 FROM
     workflow_runs
@@ -153,8 +157,10 @@ class WorkflowDailyTokenCostStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = """SELECT
-    DATE(DATE_TRUNC('day', created_at AT TIME ZONE 'UTC' AT TIME ZONE :tz )) AS date,
+        converted_created_at = convert_datetime_to_date(db.engine.dialect.name)
+
+        sql_query = f"""SELECT
+    {converted_created_at} AS date,
     SUM(workflow_runs.total_tokens) AS token_count
 FROM
     workflow_runs
@@ -220,13 +226,15 @@ class WorkflowAverageAppInteractionStatistic(Resource):
         parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         args = parser.parse_args()
 
-        sql_query = """SELECT
+        converted_created_at = convert_datetime_to_date(db.engine.dialect.name, "c.created_at")
+
+        sql_query = f"""SELECT
     AVG(sub.interactions) AS interactions,
     sub.date
 FROM
     (
         SELECT
-            DATE(DATE_TRUNC('day', c.created_at AT TIME ZONE 'UTC' AT TIME ZONE :tz )) AS date,
+            {converted_created_at} AS date,
             c.created_by,
             COUNT(c.id) AS interactions
         FROM

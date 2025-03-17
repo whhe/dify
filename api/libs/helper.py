@@ -309,3 +309,13 @@ class RateLimiter:
 
         redis_client.zadd(key, {current_time: current_time})
         redis_client.expire(key, self.time_window * 2)
+
+
+def convert_datetime_to_date(dialect: str, field: str = "created_at", target_timezone: str = ":tz"):
+    if dialect == "postgresql":
+        convert_func = f"DATE(DATE_TRUNC('day', {field} AT TIME ZONE 'UTC' AT TIME ZONE {target_timezone}))"
+    elif dialect == "mysql":
+        convert_func = f"DATE(CONVERT_TZ({field}, 'UTC', {target_timezone}))"
+    else:
+        raise NotImplementedError(f"Unsupported dialect: {dialect}")
+    return convert_func
