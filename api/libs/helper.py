@@ -309,3 +309,12 @@ class RateLimiter:
 
         redis_client.zadd(key, {current_time: current_time})
         redis_client.expire(key, self.time_window * 2)
+
+
+def convert_datetime_to_date(field, target_timezone: str = ":tz"):
+    if dify_config.SQLALCHEMY_DATABASE_URI_SCHEME == "postgresql":
+        return f"DATE(DATE_TRUNC('day', {field} AT TIME ZONE 'UTC' AT TIME ZONE {target_timezone}))"
+    elif "mysql" in dify_config.SQLALCHEMY_DATABASE_URI_SCHEME:
+        return f"DATE(CONVERT_TZ({field}, 'UTC', {target_timezone}))"
+    else:
+        raise NotImplementedError(f"Unsupported database URI scheme: {dify_config.SQLALCHEMY_DATABASE_URI_SCHEME}")
