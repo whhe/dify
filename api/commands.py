@@ -581,7 +581,8 @@ def create_tenant(email: str, language: Optional[str] = None, name: Optional[str
 
 
 @click.command("upgrade-db", help="Upgrade the database")
-def upgrade_db():
+@click.option("--directory", prompt=False, help="The target migration script directory.")
+def upgrade_db(directory: Optional[str] = None):
     click.echo("Preparing database migration...")
     lock = redis_client.lock(name="db_upgrade_lock", timeout=60)
     if lock.acquire(blocking=False):
@@ -591,7 +592,7 @@ def upgrade_db():
             # run db migration
             import flask_migrate  # type: ignore
 
-            flask_migrate.upgrade()
+            flask_migrate.upgrade(directory=directory)
 
             click.echo(click.style("Database migration successful!", fg="green"))
 
