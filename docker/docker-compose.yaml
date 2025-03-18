@@ -48,6 +48,7 @@ x-shared-env: &shared-api-worker-env
   DB_HOST: ${DB_HOST:-db}
   DB_PORT: ${DB_PORT:-5432}
   DB_DATABASE: ${DB_DATABASE:-dify}
+  SQLALCHEMY_DATABASE_URI_SCHEME: ${SQLALCHEMY_DATABASE_URI_SCHEME:-postgresql}
   SQLALCHEMY_POOL_SIZE: ${SQLALCHEMY_POOL_SIZE:-30}
   SQLALCHEMY_POOL_RECYCLE: ${SQLALCHEMY_POOL_RECYCLE:-3600}
   SQLALCHEMY_ECHO: ${SQLALCHEMY_ECHO:-false}
@@ -432,7 +433,7 @@ x-shared-env: &shared-api-worker-env
 services:
   # API service
   api:
-    image: langgenius/dify-api:1.1.0
+    image: quay.io/oceanbase-devhub/dify-api:1.1.0
     restart: always
     environment:
       # Use the shared environment variables.
@@ -447,7 +448,6 @@ services:
       PLUGIN_MAX_PACKAGE_SIZE: ${PLUGIN_MAX_PACKAGE_SIZE:-52428800}
       INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
     depends_on:
-      - db
       - redis
     volumes:
       # Mount the storage directory to the container, for storing user files.
@@ -459,7 +459,7 @@ services:
   # worker service
   # The Celery worker for processing the queue.
   worker:
-    image: langgenius/dify-api:1.1.0
+    image: quay.io/oceanbase-devhub/dify-api:1.1.0
     restart: always
     environment:
       # Use the shared environment variables.
@@ -472,7 +472,6 @@ services:
       PLUGIN_MAX_PACKAGE_SIZE: ${PLUGIN_MAX_PACKAGE_SIZE:-52428800}
       INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
     depends_on:
-      - db
       - redis
     volumes:
       # Mount the storage directory to the container, for storing user files.
@@ -483,7 +482,7 @@ services:
 
   # Frontend web application.
   web:
-    image: langgenius/dify-web:1.1.0
+    image: quay.io/oceanbase-devhub/dify-web:1.1.0
     restart: always
     environment:
       CONSOLE_API_URL: ${CONSOLE_API_URL:-}
@@ -518,6 +517,8 @@ services:
                -c 'effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}'
     volumes:
       - ./volumes/db/data:/var/lib/postgresql/data
+    profiles:
+      - postgresql
     healthcheck:
       test: [ 'CMD', 'pg_isready' ]
       interval: 1s
@@ -526,7 +527,7 @@ services:
 
   # The redis cache.
   redis:
-    image: redis:6-alpine
+    image: quay.io/oceanbase-devhub/redis:6-alpine
     restart: always
     environment:
       REDISCLI_AUTH: ${REDIS_PASSWORD:-difyai123456}
@@ -540,7 +541,7 @@ services:
 
   # The DifySandbox
   sandbox:
-    image: langgenius/dify-sandbox:0.2.10
+    image: quay.io/oceanbase-devhub/dify-sandbox:0.2.10
     restart: always
     environment:
       # The DifySandbox configurations
@@ -563,7 +564,7 @@ services:
 
   # plugin daemon
   plugin_daemon:
-    image: langgenius/dify-plugin-daemon:0.0.5-local
+    image: quay.io/oceanbase-devhub/dify-plugin-daemon:0.0.5-local
     restart: always
     environment:
       # Use the shared environment variables.
@@ -586,14 +587,12 @@ services:
       - "${EXPOSE_PLUGIN_DEBUGGING_PORT:-5003}:${PLUGIN_DEBUGGING_PORT:-5003}"
     volumes:
       - ./volumes/plugin_daemon:/app/storage
-    depends_on:
-      - db
 
   # ssrf_proxy server
   # for more information, please refer to
   # https://docs.dify.ai/learn-more/faq/install-faq#id-18.-why-is-ssrf_proxy-needed
   ssrf_proxy:
-    image: ubuntu/squid:latest
+    image: quay.io/oceanbase-devhub/squid:latest
     restart: always
     volumes:
       - ./ssrf_proxy/squid.conf.template:/etc/squid/squid.conf.template
@@ -633,7 +632,7 @@ services:
   # The nginx reverse proxy.
   # used for reverse proxying the API service and Web service.
   nginx:
-    image: nginx:latest
+    image: quay.io/oceanbase-devhub/nginx:latest
     restart: always
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template
@@ -674,7 +673,6 @@ services:
   weaviate:
     image: semitechnologies/weaviate:1.19.0
     profiles:
-      - ''
       - weaviate
     restart: always
     volumes:
