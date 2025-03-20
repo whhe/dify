@@ -7,9 +7,9 @@ NC='\033[0m' # No Color
 
 show_help() {
     cat <<EOF
-Usage:  ./setup-ob-env.sh
+Usage:  ./setup-mysql-env.sh
                 Interactively configure database parameters to .env file.
-        ./setup-ob-env.sh [options]
+        ./setup-mysql-env.sh [options]
                 Call the function corresponding to option.
 
 Options:
@@ -102,7 +102,7 @@ current_db_port=$(get_env_value "DB_PORT" "3306")
 current_db_user=$(get_env_value "DB_USERNAME" "root")
 current_db_password=$(get_env_value "DB_PASSWORD" "")
 current_db_name=$(get_env_value "DB_DATABASE" "dify")
-current_vector_db_name=$(get_env_value "OCEANBASE_VECTOR_DATABASE" "test")
+current_plugin_db_name=$(get_env_value "DB_PLUGIN_DATABASE" "dify_plugin")
 
 function test_connection() {
     local host=$1
@@ -110,7 +110,6 @@ function test_connection() {
     local user=$3
     local password=$4
     local db=$5
-    local vector_db=$6
 
     mysql -h "$host" -P "$port" -u "$user" -p"$password" -D"$db" -e "SHOW TABLES" 2>&1 >/dev/null
 
@@ -118,14 +117,6 @@ function test_connection() {
         print_message "error" "Connection to database failed, database name: $db \n"
     else
         print_message "success" "Connection to database success, database name: $db \n"
-    fi
-
-    mysql -h "$host" -P "$port" -u "$user" -p"$password" -D"$vector_db" -e "SHOW TABLES" 2>&1 >/dev/null
-
-    if [[ $? != 0 ]]; then
-        print_message "error" "Connection to vector database failed, database name: $vector_db \n"
-    else
-        print_message "success" "Connection to vector database success, database name: $vector_db \n"
     fi
 }
 
@@ -137,7 +128,7 @@ while [[ $# -gt 0 ]]; do
         ;;
     -t | --test)
         print_message "info" "Check database connection:\n"
-        test_connection "$current_db_host" "$current_db_port" "$current_db_user" "$current_db_password" "$current_db_name" "$current_vector_db_name"
+        test_connection "$current_db_host" "$current_db_port" "$current_db_user" "$current_db_password" "$current_db_name"
         exit 0
         ;;
     *)
@@ -154,7 +145,7 @@ DB_PORT=$(get_user_input "Database Port" "$current_db_port")
 DB_USERNAME=$(get_user_input "Database Username" "$current_db_user")
 DB_PASSWORD=$(get_user_input "Database Password" "$current_db_password")
 DB_DATABASE=$(get_user_input "Database Name" "$current_db_name")
-OCEANBASE_VECTOR_DATABASE=$(get_user_input "Vector Database Name" "$current_vector_db_name")
+DB_PLUGIN_DATABASE=$(get_user_input "Plugin Database Name" "$current_plugin_db_name")
 
 update_env "SQLALCHEMY_DATABASE_URI_SCHEME" "mysql+pymysql"
 update_env "DB_HOST" "$DB_HOST"
@@ -163,15 +154,12 @@ update_env "DB_USERNAME" "$DB_USERNAME"
 update_env "DB_PASSWORD" "$DB_PASSWORD"
 update_env "DB_DATABASE" "$DB_DATABASE"
 
+update_env "DB_PLUGIN_DATABASE" "$DB_PLUGIN_DATABASE"
+
 update_env "VECTOR_STORE" "oceanbase"
-update_env "OCEANBASE_VECTOR_HOST" "$DB_HOST"
-update_env "OCEANBASE_VECTOR_PORT" "$DB_PORT"
-update_env "OCEANBASE_VECTOR_USER" "$DB_USERNAME"
-update_env "OCEANBASE_VECTOR_PASSWORD" "$DB_PASSWORD"
-update_env "OCEANBASE_VECTOR_DATABASE" "$OCEANBASE_VECTOR_DATABASE"
 
 print_message "success" "\nDatabase parameters are written into .env successfully."
 
 print_message "info" "\nCheck database connection:\n"
 
-test_connection "$DB_HOST" "$DB_PORT" "$DB_USERNAME" "$DB_PASSWORD" "$DB_DATABASE" "$OCEANBASE_VECTOR_DATABASE"
+test_connection "$DB_HOST" "$DB_PORT" "$DB_USERNAME" "$DB_PASSWORD" "$DB_DATABASE"
