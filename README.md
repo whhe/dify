@@ -15,7 +15,7 @@ This branch is based on the legacy version [https://github.com/oceanbase-devhub/
 
 The easiest way to start the Dify server is through [docker-compose.yaml](docker/docker-compose.yaml). 
 
-Before running Dify with the following commands, make sure that [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed on your machine. If you want to use MySQL or OceanBase database to replace Postgresql, please prepare an MySQL or OceanBase database and create a database for Dify to use.
+Before running Dify with the following commands, make sure that [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed on your machine.
 
 ```bash
 cd docker
@@ -24,8 +24,7 @@ docker compose up -d
 ```
 
 Note:
-- setup-mysql-env.sh is a script for setting database parameters. It will update the parameters for MySQL connection according to the user input and set OceanBase as the Vector Store.
-- In order to facilitate users in mainland China to pull Docker images, we choose to maintain the images of this Dify branch under the organization https://quay.io/organization/oceanbase-devhub, and the several required images in docker-compose.yaml are also changed to this registry.
+- setup-mysql-env.sh is a script for setting database parameters. It will update the parameters for database connection according to the user input and set OceanBase as the Vector Store.
 - Dify 1.x introduced the plugin system. The plugin installation process will execute commands like `pip install -r requirements.txt` according to the plugin configuration, in order to speed up the installation process, the script has set `PIP_MIRROR_URL` to Tsinghua University Tuna Mirror Site. 
 
 After running, you can access the Dify dashboard in your browser at [http://localhost/install](http://localhost/install) and start the initialization process.

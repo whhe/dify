@@ -19,7 +19,7 @@
 
 启动 Dify 服务器的最简单方法是运行我们的 [docker-compose.yaml](docker/docker-compose.yaml) 文件。
 
-在运行安装命令之前，请确保您的机器上安装了 [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)，如果您想使用 MySQL 或 OceanBase 数据库来代替 Postgresql，请先准备一个可用的 MySQL 或 OceanBase 数据库，并且创建一个 database 供 Dify 使用。
+在运行安装命令之前，请确保您的机器上安装了 [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)。
 
 启动服务的操作如下：
 
@@ -30,8 +30,7 @@ docker compose up -d
 ```
 
 说明：
-- setup-mysql-env.sh 是一个设置参数的辅助脚本，它会根据用户输入更新 MySQL 的连接参数，同时设置 OceanBase 作为 Vector Store。
-- 为了方便中国大陆地区的用户拉取 Docker 镜像，我们选择在 https://quay.io/organization/oceanbase-devhub 组织下维护本 Dify 分支的镜像，docker-compose.yaml 中必需的几个镜像地址也都改为了该地址。
+- setup-mysql-env.sh 是一个设置参数的辅助脚本，它会根据用户输入设置数据库连接信息，并设置 OceanBase 作为 Vector Store。
 - Dify 1.x 开始引入了插件系统，安装插件的过程会根据插件配置执行类似 `python install -r requirements.txt` 的命令，为了加快安装速度，脚本中设置了 `PIP_MIRROR_URL` 为清华大学 Tuna 镜像源网站。
 
 运行后，可以在浏览器上访问 [http://localhost/install](http://localhost/install) 进入 Dify 控制台并开始初始化安装操作。
